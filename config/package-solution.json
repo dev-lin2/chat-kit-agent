@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "chat-kit-agent-client-side-solution",
+    "id": "7d074c98-960e-40a1-902d-4fd0636f731e",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.22.1"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "chat-kit-agent description"
+      },
+      "longDescription": {
+        "default": "chat-kit-agent description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "chat-kit-agent Feature",
+        "description": "The feature that activates elements of the chat-kit-agent solution.",
+        "id": "9191b019-6169-4bb9-9e17-3979e0c14d12",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/chat-kit-agent.sppkg"
+  }
+}

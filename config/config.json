@@ -1,0 +1,18 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "chat-kit-agent-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/chatKitAgent/ChatKitAgentWebPart.js",
+          "manifest": "./src/webparts/chatKitAgent/ChatKitAgentWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "ChatKitAgentWebPartStrings": "lib/webparts/chatKitAgent/loc/{locale}.js"
+  }
+}
