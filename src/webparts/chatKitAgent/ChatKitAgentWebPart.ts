@@ -42,7 +42,7 @@ export default class ChatKitAgentWebPart extends BaseClientSideWebPart<IChatKitA
             {
               groupName: "Configuration",
               groupFields: [
-                PropertyPaneTextField("title", { label: "Title" }),
+                PropertyPaneTextField("greeting", { label: "Greeting" }),
                 PropertyPaneTextField("lambdaUrl", {
                   label: "Token endpoint (Lambda Function URL)",
                   placeholder: "https://xxxx.lambda-url.region.on.aws/"

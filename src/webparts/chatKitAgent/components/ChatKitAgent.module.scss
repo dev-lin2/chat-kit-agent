@@ -116,10 +116,10 @@
 
 .bubble {
   position: fixed;
-  right: 24px;
-  bottom: 24px;
-  width: 56px;
-  height: 56px;
+  right: 16px;
+  bottom: 16px;
+  width: 48px;
+  height: 48px;
   border-radius: 999px;
   border: none;
   cursor: pointer;
@@ -135,16 +135,16 @@
 }
 
 .bubbleIcon {
-  font-size: 22px;
+  font-size: 18px;
 }
 
 .panel {
   position: fixed;
-  right: 24px;
-  bottom: 92px;
-  width: 420px;
-  height: 620px;
-  border-radius: 14px;
+  right: 16px;
+  bottom: 80px;
+  width: 360px;
+  height: 520px;
+  border-radius: 12px;
   overflow: hidden;
   background: #111;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
@@ -157,14 +157,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
-  background: #161616;
+  padding: 8px 10px;
+  background: #ffffff;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .panelTitle {
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -174,9 +174,9 @@
 }
 
 .smallBtn {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: transparent;
   color: #fff;
