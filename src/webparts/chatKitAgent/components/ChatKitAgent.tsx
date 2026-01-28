@@ -2,28 +2,11 @@ import * as React from "react";
 import styles from "./ChatKitAgent.module.scss";
 import type { IChatKitAgentProps } from "./IChatKitAgentProps";
 
-// Registers/typings for the <openai-chatkit> element
-import "@openai/chatkit";
-
 type TokenResponse = {
   client_secret: string;
   expires_at?: number | string;
-  session_id?: string;
-  workflow_id?: string;
+  error?: string;
 };
-
-declare global {
-  interface Window {
-    __OPENAI_CHATKIT_SCRIPT_LOADING__?: Promise<void>;
-  }
-
-  // Minimal type for the web component API we need
-  interface HTMLElementTagNameMap {
-    "openai-chatkit": HTMLElement & {
-      setOptions: (options: any) => void;
-    };
-  }
-}
 
 async function safeReadText(res: Response): Promise<string> {
   try {
@@ -57,6 +40,20 @@ function loadChatKitScriptOnce(): Promise<void> {
   return window.__OPENAI_CHATKIT_SCRIPT_LOADING__;
 }
 
+function whenDefined(tagName: string, timeoutMs = 10000): Promise<void> {
+  if (window.customElements.get(tagName)) return Promise.resolve();
+
+  return new Promise<void>((resolve, reject) => {
+    const start = Date.now();
+    const tick = () => {
+      if (window.customElements.get(tagName)) return resolve();
+      if (Date.now() - start > timeoutMs) return reject(new Error(`Timed out waiting for ${tagName}`));
+      setTimeout(tick, 50);
+    };
+    tick();
+  });
+}
+
 async function fetchClientSecret(lambdaUrl: string, workflowId: string, userId: string): Promise<TokenResponse> {
   const res = await fetch(lambdaUrl, {
     method: "POST",
@@ -70,7 +67,7 @@ async function fetchClientSecret(lambdaUrl: string, workflowId: string, userId: 
   }
 
   const data = (await res.json()) as TokenResponse;
-  if (!data?.client_secret) throw new Error("Token endpoint response missing client_secret");
+  if (!data?.client_secret) throw new Error(data?.error || "Failed to get client_secret");
   return data;
 }
 
@@ -78,100 +75,140 @@ export default function ChatKitAgent(props: IChatKitAgentProps): JSX.Element {
   const lambdaUrl = (props.lambdaUrl || "").trim();
   const workflowId = (props.workflowId || "").trim();
   const userId = (props.userId || "sharepoint-user").trim();
+  const greeting = (props.greeting || "").trim();
+
   const hasConfig = Boolean(lambdaUrl && workflowId);
+
+  const [open, setOpen] = React.useState(false);
+  const [busy, setBusy] = React.useState(false);
+  const [error, setError] = React.useState<string>("");
 
   const hostRef = React.useRef<HTMLDivElement | null>(null);
   const chatElRef = React.useRef<HTMLElementTagNameMap["openai-chatkit"] | null>(null);
+  const initializingRef = React.useRef(false);
 
-  const [error, setError] = React.useState<string>("");
-  const [meta, setMeta] = React.useState<string>(() =>
-    hasConfig ? "Loading..." : "Configure Lambda URL and Workflow ID in the web part settings"
-  );
-
-  // Keep token only in memory
+  // Keep token in memory (optional). If you always want a fresh token per open, clear this on open.
   const tokenRef = React.useRef<{ clientSecret: string; expiresAt?: number | string } | null>(null);
 
-  const resetSession = React.useCallback(() => {
-    tokenRef.current = null;
-    setError("");
-    setMeta("Session cleared");
-    // Recreate the element to ensure a clean session
-    if (hostRef.current) {
-      hostRef.current.innerHTML = "";
-      chatElRef.current = null;
+  const mountChatIfNeeded = React.useCallback(async () => {
+    if (!hasConfig) {
+      setError("Configure Lambda URL and Workflow ID in the web part settings.");
+      return;
     }
-  }, []);
+    if (!open) return;
+    if (chatElRef.current || initializingRef.current) return;
 
-  React.useEffect(() => {
-    let cancelled = false;
+    initializingRef.current = true;
+    setBusy(true);
+    setError("");
 
-    async function init() {
-      setError("");
-      tokenRef.current = null;
-
-      if (!hasConfig) {
-        setMeta("Configure Lambda URL and Workflow ID in the web part settings");
-        return;
-      }
-
-      setMeta("Loading ChatKit...");
-      await loadChatKitScriptOnce(); // required for the web component runtime :contentReference[oaicite:2]{index=2}
-      if (cancelled) return;
+    try {
+      await loadChatKitScriptOnce();
+      await whenDefined("openai-chatkit");
 
       if (!hostRef.current) return;
 
-      // Create/mount <openai-chatkit>
-      hostRef.current.innerHTML = "";
-      const el = document.createElement("openai-chatkit");
+      const el = document.createElement("openai-chatkit") as HTMLElementTagNameMap["openai-chatkit"];
       el.classList.add(styles.chatKitFrame);
-      hostRef.current.appendChild(el);
 
-      // Configure it using the managed ChatKit flow: provide getClientSecret :contentReference[oaicite:3]{index=3}
       el.setOptions({
         api: {
-          getClientSecret: async (currentClientSecret?: string) => {
-            // If ChatKit passes an existing secret, you can choose to refresh it.
-            // Minimal approach: reuse it if present, else mint a new one.
-            if (currentClientSecret) return currentClientSecret;
-            if (tokenRef.current?.clientSecret) return tokenRef.current.clientSecret;
+          getClientSecret: async (current?: string) => {
+            const needFresh = Boolean(current);
+            if (!needFresh && tokenRef.current?.clientSecret) return tokenRef.current.clientSecret;
 
-            setMeta("Creating session...");
             const t = await fetchClientSecret(lambdaUrl, workflowId, userId);
             tokenRef.current = { clientSecret: t.client_secret, expiresAt: t.expires_at };
-            setMeta("Ready");
             return t.client_secret;
           }
+        },
+
+        header: { title: { text: "Hi there! 👋" } },
+
+        history: { enabled: true, showDelete: true, showRename: true },
+
+        theme: {
+          colorScheme: "dark",
+          color: { accent: { primary: "#F1246A", level: 2 } },
+          radius: "round",
+          density: "compact",
+          typography: { fontFamily: "'Inter', sans-serif" }
+        },
+
+        startScreen: {
+          greeting:
+            greeting ||
+            "Hi! I'm AskSara, your HeySara sidekick here to help with everything within the family. Need help? Just type your question below."
         }
       });
 
+      el.style.width = "100%";
+      el.style.height = "100%";
+
+      hostRef.current.innerHTML = "";
+      hostRef.current.appendChild(el);
       chatElRef.current = el;
-      setMeta("Ready");
-    }
 
-    init().catch((e) => {
-      if (cancelled) return;
+      try {
+        el.focusComposer && el.focusComposer();
+      } catch {}
+    } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
-      setMeta("Error");
-    });
+      if (hostRef.current) hostRef.current.innerHTML = "";
+      chatElRef.current = null;
+    } finally {
+      setBusy(false);
+      initializingRef.current = false;
+    }
+  }, [hasConfig, open, lambdaUrl, workflowId, userId, greeting]);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [hasConfig, lambdaUrl, workflowId, userId]);
+  React.useEffect(() => {
+    void mountChatIfNeeded();
+  }, [mountChatIfNeeded]);
+
+  const toggle = React.useCallback(() => {
+    setOpen((v) => !v);
+  }, []);
+
+  const close = React.useCallback(() => {
+    setOpen(false);
+  }, []);
+
+  const resetConversation = React.useCallback(() => {
+    tokenRef.current = null;
+    if (hostRef.current) hostRef.current.innerHTML = "";
+    chatElRef.current = null;
+    if (open) void mountChatIfNeeded();
+  }, [open, mountChatIfNeeded]);
 
   return (
-    <section className={styles.chatKitAgent}>
-      <div className={styles.header}>
-        <h2 className={styles.title}>{props.title || "Chat Kit Agent"}</h2>
-        <button className={styles.button} onClick={resetSession} disabled={!hasConfig}>
-          New session
-        </button>
-      </div>
+    <section className={styles.shell} aria-label="Chat Kit Agent">
+      {/* Bubble */}
+      <button className={styles.bubble} onClick={toggle} aria-haspopup="dialog" aria-expanded={open} disabled={!hasConfig}>
+        <span className={styles.bubbleIcon}>💬</span>
+      </button>
 
-      <div className={styles.meta}>{meta}</div>
-      {error ? <div className={styles.error}>{error}</div> : null}
+      {/* Panel */}
+      {open ? (
+        <div className={styles.panel} role="dialog" aria-label="Chat">
+          <div className={styles.panelHeader}>
+            <div className={styles.panelTitle}>Chat</div>
+            <div className={styles.panelActions}>
+              <button className={styles.smallBtn} onClick={resetConversation} title="New session">
+                ↻
+              </button>
+              <button className={styles.smallBtn} onClick={close} title="Close">
+                ✕
+              </button>
+            </div>
+          </div>
 
-      <div ref={hostRef} className={styles.widgetHost} />
+          {busy ? <div className={styles.meta}>Connecting…</div> : null}
+          {error ? <div className={styles.error}>{error}</div> : null}
+
+          <div ref={hostRef} className={styles.widgetHost} />
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -11,9 +11,9 @@ import { IChatKitAgentWebPartProps } from "./IChatKitAgentWebPartProps";
 export default class ChatKitAgentWebPart extends BaseClientSideWebPart<IChatKitAgentWebPartProps> {
   public render(): void {
     const element: React.ReactElement<IChatKitAgentProps> = React.createElement(ChatKitAgent, {
-      title: (this.properties.title || "Chat Kit Agent").trim(),
       lambdaUrl: (this.properties.lambdaUrl || "").trim(),
       workflowId: (this.properties.workflowId || "").trim(),
+      greeting: (this.properties.greeting || "").trim(),
       userId: this._getUserId()
     });
 

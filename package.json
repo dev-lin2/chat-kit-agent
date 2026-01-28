@@ -19,7 +19,6 @@
     "@microsoft/sp-office-ui-fabric-core": "1.22.1",
     "@microsoft/sp-property-pane": "1.22.1",
     "@microsoft/sp-webpart-base": "1.22.1",
-    "@openai/chatkit": "^1.5.0",
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "tslib": "2.3.1"

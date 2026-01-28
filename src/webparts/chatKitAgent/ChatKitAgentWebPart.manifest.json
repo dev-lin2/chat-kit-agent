@@ -1,12 +1,24 @@
 {
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "7184418e-e574-476b-8655-5ab32f699a92",
+  "alias": "ChatKitAgentWebPart",
+  "componentType": "WebPart",
+  "version": "*",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": ["SharePointWebPart", "SharePointFullPage"],
+  "supportsThemeVariants": true,
   "preconfiguredEntries": [
     {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": { "default": "Other" },
       "title": { "default": "Chat Kit Agent" },
       "description": { "default": "ChatKit agent web part" },
+      "officeFabricIconFontName": "Chat",
       "properties": {
-        "title": "Chat Kit Agent",
         "lambdaUrl": "",
-        "workflowId": ""
+        "workflowId": "",
+        "greeting": "Hi! How can I help?"
       }
     }
   ]

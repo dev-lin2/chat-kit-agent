@@ -1,6 +1,6 @@
 export interface IChatKitAgentProps {
-  title: string;
   lambdaUrl: string;
   workflowId: string;
   userId: string;
+  greeting: string;
 }
