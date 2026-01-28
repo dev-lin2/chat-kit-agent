@@ -1,92 +1,28 @@
-import * as React from 'react';
-import * as ReactDom from 'react-dom';
-import { Version } from '@microsoft/sp-core-library';
-import {
-  type IPropertyPaneConfiguration,
-  PropertyPaneTextField
-} from '@microsoft/sp-property-pane';
-import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
-import { IReadonlyTheme } from '@microsoft/sp-component-base';
+import { Version } from "@microsoft/sp-core-library";
+import { IPropertyPaneConfiguration, PropertyPaneTextField } from "@microsoft/sp-property-pane";
+import { BaseClientSideWebPart } from "@microsoft/sp-webpart-base";
+import * as React from "react";
+import * as ReactDom from "react-dom";
 
-import * as strings from 'ChatKitAgentWebPartStrings';
-import ChatKitAgent from './components/ChatKitAgent';
-import { IChatKitAgentProps } from './components/IChatKitAgentProps';
-
-export interface IChatKitAgentWebPartProps {
-  description: string;
-}
+import ChatKitAgent from "./components/ChatKitAgent";
+import { IChatKitAgentProps } from "./components/IChatKitAgentProps";
+import { IChatKitAgentWebPartProps } from "./IChatKitAgentWebPartProps";
 
 export default class ChatKitAgentWebPart extends BaseClientSideWebPart<IChatKitAgentWebPartProps> {
-
-  private _isDarkTheme: boolean = false;
-  private _environmentMessage: string = '';
-
   public render(): void {
-    const element: React.ReactElement<IChatKitAgentProps> = React.createElement(
-      ChatKitAgent,
-      {
-        description: this.properties.description,
-        isDarkTheme: this._isDarkTheme,
-        environmentMessage: this._environmentMessage,
-        hasTeamsContext: !!this.context.sdks.microsoftTeams,
-        userDisplayName: this.context.pageContext.user.displayName
-      }
-    );
+    const element: React.ReactElement<IChatKitAgentProps> = React.createElement(ChatKitAgent, {
+      title: (this.properties.title || "Chat Kit Agent").trim(),
+      lambdaUrl: (this.properties.lambdaUrl || "").trim(),
+      workflowId: (this.properties.workflowId || "").trim(),
+      userId: this._getUserId()
+    });
 
     ReactDom.render(element, this.domElement);
   }
 
-  protected onInit(): Promise<void> {
-    return this._getEnvironmentMessage().then(message => {
-      this._environmentMessage = message;
-    });
-  }
-
-
-
-  private _getEnvironmentMessage(): Promise<string> {
-    if (!!this.context.sdks.microsoftTeams) { // running in Teams, office.com or Outlook
-      return this.context.sdks.microsoftTeams.teamsJs.app.getContext()
-        .then(context => {
-          let environmentMessage: string = '';
-          switch (context.app.host.name) {
-            case 'Office': // running in Office
-              environmentMessage = this.context.isServedFromLocalhost ? strings.AppLocalEnvironmentOffice : strings.AppOfficeEnvironment;
-              break;
-            case 'Outlook': // running in Outlook
-              environmentMessage = this.context.isServedFromLocalhost ? strings.AppLocalEnvironmentOutlook : strings.AppOutlookEnvironment;
-              break;
-            case 'Teams': // running in Teams
-            case 'TeamsModern':
-              environmentMessage = this.context.isServedFromLocalhost ? strings.AppLocalEnvironmentTeams : strings.AppTeamsTabEnvironment;
-              break;
-            default:
-              environmentMessage = strings.UnknownEnvironment;
-          }
-
-          return environmentMessage;
-        });
-    }
-
-    return Promise.resolve(this.context.isServedFromLocalhost ? strings.AppLocalEnvironmentSharePoint : strings.AppSharePointEnvironment);
-  }
-
-  protected onThemeChanged(currentTheme: IReadonlyTheme | undefined): void {
-    if (!currentTheme) {
-      return;
-    }
-
-    this._isDarkTheme = !!currentTheme.isInverted;
-    const {
-      semanticColors
-    } = currentTheme;
-
-    if (semanticColors) {
-      this.domElement.style.setProperty('--bodyText', semanticColors.bodyText || null);
-      this.domElement.style.setProperty('--link', semanticColors.link || null);
-      this.domElement.style.setProperty('--linkHovered', semanticColors.linkHovered || null);
-    }
-
+  private _getUserId(): string {
+    const loginName = this.context.pageContext.user?.loginName;
+    return loginName && loginName.trim() ? loginName : "sharepoint-user";
   }
 
   protected onDispose(): void {
@@ -94,23 +30,24 @@ export default class ChatKitAgentWebPart extends BaseClientSideWebPart<IChatKitA
   }
 
   protected get dataVersion(): Version {
-    return Version.parse('1.0');
+    return Version.parse("1.0");
   }
 
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
     return {
       pages: [
         {
-          header: {
-            description: strings.PropertyPaneDescription
-          },
+          header: { description: "Chat Kit Agent settings" },
           groups: [
             {
-              groupName: strings.BasicGroupName,
+              groupName: "Configuration",
               groupFields: [
-                PropertyPaneTextField('description', {
-                  label: strings.DescriptionFieldLabel
-                })
+                PropertyPaneTextField("title", { label: "Title" }),
+                PropertyPaneTextField("lambdaUrl", {
+                  label: "Token endpoint (Lambda Function URL)",
+                  placeholder: "https://xxxx.lambda-url.region.on.aws/"
+                }),
+                PropertyPaneTextField("workflowId", { label: "Workflow ID", placeholder: "wf_..." })
               ]
             }
           ]

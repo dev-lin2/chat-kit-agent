@@ -1,34 +1,120 @@
-@import '~@fluentui/react/dist/sass/References.scss';
-
 .chatKitAgent {
+  font-family: sans-serif;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.meta {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #555;
+}
+
+.error {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #b00020;
+}
+
+.chat {
+  margin-top: 12px;
+  border: 1px solid #e2e2e2;
+  border-radius: 6px;
   overflow: hidden;
-  padding: 1em;
-  color: "[theme:bodyText, default: #323130]";
-  color: var(--bodyText);
-  &.teams {
-    font-family: $ms-font-family-fallbacks;
-  }
 }
 
-.welcome {
-  text-align: center;
+.messages {
+  padding: 10px;
+  min-height: 160px;
+  max-height: 360px;
+  overflow: auto;
+  background: #fff;
 }
 
-.welcomeImage {
+.placeholder {
+  font-size: 12px;
+  color: #666;
+}
+
+.userMsg,
+.assistantMsg {
+  padding: 8px;
+  border: 1px solid #ededed;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  white-space: pre-wrap;
+}
+
+.userMsg {
+  background: #fafafa;
+}
+
+.assistantMsg {
+  background: #ffffff;
+}
+
+.msgRole {
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.msgText {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.composer {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid #e2e2e2;
+  background: #fff;
+}
+
+.input {
+  flex: 1;
+  min-width: 160px;
+  padding: 8px 10px;
+  border: 1px solid #c8c8c8;
+  border-radius: 4px;
+}
+
+.button {
+  padding: 8px 12px;
+  border: 1px solid #c8c8c8;
+  border-radius: 4px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.widgetHost {
+  margin-top: 12px;
+}
+
+.chatKitFrame {
+  height: 600px;
   width: 100%;
-  max-width: 420px;
-}
-
-.links {
-  a {
-    text-decoration: none;
-    color: "[theme:link, default:#03787c]";
-    color: var(--link); // note: CSS Custom Properties support is limited to modern browsers only
-
-    &:hover {
-      text-decoration: underline;
-      color: "[theme:linkHovered, default: #014446]";
-      color: var(--linkHovered); // note: CSS Custom Properties support is limited to modern browsers only
-    }
-  }
 }
